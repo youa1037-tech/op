@@ -103,6 +103,11 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--sel);outline-
 .floor{position:absolute;left:var(--ts);top:var(--ts);width:calc(var(--ts)*21);height:calc(var(--ts)*13);pointer-events:none}
 .room.rain .sky-win{background:repeating-linear-gradient(110deg,#8fa0ad 0 3px,#6d7f8c 3px 6px)}
 .room.rain #tint{filter:brightness(.82) saturate(.7)}
+.room.snow .sky-win{background:radial-gradient(circle,#fff 0 1px,transparent 1.6px) 0 0/7px 7px,radial-gradient(circle,#fff 0 1px,transparent 1.6px) 3px 4px/9px 9px,var(--sky,#c6d0de);animation:snowfall 6s linear infinite}
+@keyframes snowfall{to{background-position:0 42px,3px 58px,0 0}}
+.room[data-season=spring]:not(.rain):not(.snow) .sky-win{background:radial-gradient(circle,#f6c9d4 0 1.4px,transparent 2px) 2px 3px/11px 9px,var(--sky,#bfd9e8)}
+.room[data-season=autumn]:not(.rain):not(.snow) .sky-win{background:radial-gradient(circle,#e3a64a 0 1.4px,transparent 2px) 5px 6px/13px 11px,var(--sky,#bfd9e8)}
+@media (prefers-reduced-motion:reduce){.room.snow .sky-win{animation:none}}
 .sky-win{position:absolute;left:calc(var(--ts)*5 + 4px);top:calc(var(--ts)*-1 + 7px);width:calc(var(--ts)*2 - 8px);height:calc(var(--ts) - 12px);background:var(--sky,#bfd9e8);
   box-shadow:inset 0 0 0 3px #2c2622,0 10px 0 2px color-mix(in srgb,var(--sky,#bfd9e8) 30%,transparent),0 22px 0 8px color-mix(in srgb,var(--sky,#bfd9e8) 15%,transparent),0 36px 0 14px color-mix(in srgb,var(--sky,#bfd9e8) 7%,transparent)}
 .sky-win::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1px;background:#2c2622;box-shadow:0 0 0 0 #2c2622}
@@ -666,7 +671,7 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
   </dl></section>
   <section id="help-gift"><h5>선물과 가구</h5><p>입욕제는 욕실 선반에 쌓이고, 씻는 사람이 취향대로 하나 골라 넣어 욕조 물 색이 바뀝니다. 보내는 사람 이름을 고르면, 받은 쪽은 그 사람이 보낸 줄 압니다. 빈방 가구는 바로 도착해 빈방에 놓입니다. 거실 가구는 다음 날 택배로 와서 둘이 조립하고, 정해진 자리에 놓입니다.</p></section>
   <section id="help-teller"><h5>분위기</h5><p>둘의 성격은 그대로이고, 어떤 일이 얼마나 자주 일어나는지만 달라집니다. 제목줄의 분위기 버튼으로 언제든 바꿀 수 있고, 다음 날 일정부터 반영됩니다.</p></section>
-  <section id="help-time"><h5>시간</h5><p>1배속에서 하루(16시~24시)는 약 24분입니다. 창을 닫거나 다른 탭에 가 있어도 최대 하루치까지 흘러가고, 돌아오면 그동안의 일을 요약해 보여 줍니다. 멈춤 상태로 두면 흐르지 않습니다. 둘이 잠들면 그날의 일기가 써집니다.</p></section>
+  <section id="help-time"><h5>시간</h5><p>1배속에서 하루(16시~24시)는 약 24분입니다. 7일마다 계절이 바뀌고, 계절에 따라 날씨와 기념일이 달라집니다. 창을 닫거나 다른 탭에 가 있어도 최대 하루치까지 흘러가고, 돌아오면 그동안의 일을 요약해 보여 줍니다. 멈춤 상태로 두면 흐르지 않습니다. 둘이 잠들면 그날의 일기가 써집니다.</p></section>
   <section id="help-needs"><h5>기분과 욕구</h5><p>휴식·재미·교류·혼자 있기가 낮아지면 기분이 떨어지고, 기분이 낮으면 삐치거나 날이 섭니다. 아래 목록은 지금 기분에 영향을 주는 일입니다.</p></section>
   <section id="help-rel"><h5>관계</h5><p>우정은 상대를 얼마나 좋게 보는지, 앙숙은 쌓인 앙금, 텐션은 의식하는 정도입니다. 셋의 조합으로 관계 상태가 정해집니다. 관계는 날마다 조금씩 원래 궁합 쪽으로 돌아가고, 같은 분위기가 오래 이어지면 흔들리는 일이 생깁니다. 끝이나 결말은 없습니다.</p></section>
   <section id="help-mem"><h5>기억</h5><p>방금 있었던 일은 몇십 분, 오래 남은 기억은 며칠 동안 행동과 대사에 영향을 줍니다. 항목에 마우스를 올리면 효과가 보입니다.</p></section>
@@ -1967,6 +1972,141 @@ const HAPPEN = {
           cold:{ t:'{a}(과/와) {b}(은/는) 각자 자기 구역만 말없이 치웠다. 경계선이 선명해졌다.', say:[['a','……'],['b','……']] } } },
   ] },
 };
+/* ============================================================
+   계절과 날짜: 7일마다 계절이 바뀐다 (봄→여름→가을→겨울, 28일이 한 해).
+   날짜는 S.day에서 계산하므로 따로 저장하지 않는다.
+   ============================================================ */
+const SEASON_LEN = 7;
+const SEASONS = [
+  { k:'spring', name:'봄', rain:1, snow:0, sky:[214,226,236], kotatsu:.6,
+    turn:'어느새 봄이었다. 옷장 앞줄의 두꺼운 외투가 뒤로 밀려났다.',
+    open:['창밖 가로수에 연두색 새잎이 올라와 있었다.', '봄볕이 거실 바닥까지 길게 들어왔다.', '창문 틈으로 들어온 바람이 생각보다 따뜻했다.', '아래층 화단에 노란 개나리가 한 줄로 피어 있었다.'] },
+  { k:'summer', name:'여름', rain:1.6, snow:0, sky:[170,214,242], kotatsu:.15,
+    turn:'여름이 시작됐다. 고타츠 이불이 걷히고, 옷장에서 반팔이 앞줄로 나왔다.',
+    open:['창문을 열자 뜨거운 공기가 훅 들어왔다. 매미 소리가 12층까지 올라왔다.', '한낮의 열기가 아직 방 안에 고여 있었다.', '하늘이 쨍하게 파랬다. 에어컨이 일찍부터 돌아갔다.', '장마 구름이 낮게 깔려 창밖이 눅눅했다.'] },
+  { k:'autumn', name:'가을', rain:.7, snow:0, sky:[206,214,230], kotatsu:1,
+    turn:'밤공기가 서늘해졌다. 가을이 와 있었다.',
+    open:['창밖 하늘이 높고 맑았다.', '맞은편 길가 은행나무가 노랗게 물들어 있었다.', '선선한 바람이 창틀을 건드렸다.', '해가 짧아져서 오후 햇빛이 금방 비스듬해졌다.'] },
+  { k:'winter', name:'겨울', rain:.2, snow:.4, sky:[198,208,222], kotatsu:1.8,
+    turn:'겨울이 왔다. 옷장 맨 위 칸의 두꺼운 이불이 내려왔다.',
+    open:['창밖이 회색으로 가라앉아 있었다. 입김이 날 것 같은 오후였다.', '바닥 난방이 은은하게 돌았다. 창가만은 여전히 서늘했다.', '겨울 해가 낮게 깔려 방 안 깊숙이 들어왔다.', '창문 유리에 하얗게 김이 서려 있었다.'] },
+];
+const seasonIx = (d = S.day) => Math.floor(((d || 1) - 1) / SEASON_LEN) % 4;
+const season = (d) => SEASONS[seasonIx(d)];
+const seasonDay = (d = S.day) => ((d || 1) - 1) % SEASON_LEN + 1;
+const yearN = (d = S.day) => Math.floor(((d || 1) - 1) / (SEASON_LEN*4)) + 1;
+/* 기념일: 계절(s)의 몇째 날(d), 사건이 시작되는 시각(at) */
+const FEST = [
+  { id:'anniv',     s:0, d:1, name:'이사 온 날', at:19.5, test:()=>yearN() >= 2 },
+  { id:'blossom',   s:0, d:4, name:'벚꽃',       at:17.4 },
+  { id:'akeBday',   s:1, d:1, name:'아케치 생일', at:20.4 },
+  { id:'fireworks', s:1, d:5, name:'불꽃놀이',    at:21 },
+  { id:'chuseok',   s:2, d:3, name:'추석',       at:18 },
+  { id:'firstSnow', s:3, d:1, name:'첫눈',       at:17.6 },
+  { id:'xmas',      s:3, d:4, name:'크리스마스',  at:20 },
+  { id:'yearEnd',   s:3, d:7, name:'섣달그믐',    at:22.9 },
+];
+function festToday(){ const s = seasonIx(), d = seasonDay(); return FEST.find(f => f.s === s && f.d === d && (!f.test || f.test())) || null; }
+function dateLabel(){ const f = festToday(); return S.day + '일째 · ' + season().name + (f ? ' · ' + f.name : ''); }
+function seasonHaps(){
+  const se = season(), fe = festToday();
+  if (fe) {
+    if (fe.id === 'fireworks' || fe.id === 'firstSnow') S.hapQ = S.hapQ.filter(h => h.id !== 'rain' && h.id !== 'thunder');
+    S.hapQ.push({ id:'f_' + fe.id, t: fe.at*60 });
+  } else if (se.snow && !S.hapQ.some(h => h.id === 'rain') && Math.random() < se.snow) S.hapQ.push({ id:'snow', t: rand(17*60, 21.5*60) });
+  S.hapQ.sort((x, y) => x.t - y.t);
+}
+/* 새로고침하면 그날 일정이 비므로, 아직 시작 전인 기념일만 다시 잡아 둔다 */
+function festRequeue(){
+  const fe = festToday(); if (!fe || S.phase !== 'day' || S.t >= fe.at*60) return;
+  S.hapQ = S.hapQ || [];
+  if (!S.hapQ.some(h => h.id === 'f_' + fe.id)) { S.hapQ.push({ id:'f_' + fe.id, t: fe.at*60 }); S.hapQ.sort((x, y) => x.t - y.t); }
+}
+
+const SNOW_MID = { v:{
+  hate:{ t:'{b}(이/가) 창문을 열고 창틀에 쌓인 눈을 긁어모아 {a}의 목덜미에 넣었다.', at:'window', say:[['a','…!'],['b','눈 왔으니까.'],['a','……두고 봐.']], eff:{feud:2,tension:2}, emo:['anger','heart'] },
+  cold:{ t:'{a}(과/와) {b}(은/는) 같은 창 앞에 서서 서로 다른 데를 봤다. 눈은 그런 걸 신경 쓰지 않고 내렸다.', eff:{tension:2} },
+  peace:{ t:'{a}(이/가) 창문을 조금 열었다. 찬 바람과 함께 들어온 눈송이 몇 개가 {b}의 머리에 앉았다.', at:'window', say:[['b','…추워.'],['a','머리에 눈 붙었어.'],['b','떼 줘.']], eff:{fun:6}, rel:1 },
+  honey:{ t:'{a}(이/가) 유리에 김을 불어 손가락으로 작은 눈사람을 그렸다. {b}(이/가) 그 옆에 하나를 더 그렸다.', at:'window', say:[['a','이건 너.'],['b','…그럼 이건 너.']], eff:{tension:4}, emo:['heart','///'] } } };
+Object.assign(HAPPEN, {
+  snow: { a:'any', manual:true, beats:[
+    { t:'창밖으로 하얀 것이 날리기 시작했다. 눈이었다.', do(){ S.weather = 'snow'; S.rainEnd = S.t + rand(120, 200); } },
+    { t:'{a}(이/가) 창가로 가서 손바닥을 유리에 댔다.', at:'window', say:[['a','…눈 온다.'],['b','쌓이려나.']] },
+    SNOW_MID,
+  ] },
+  f_firstSnow: { a:'any', manual:true, beats:[
+    { t:'올해 첫눈이었다. 창밖이 순식간에 하얗게 흐려졌다.', do(){ S.weather = 'snow'; S.rainEnd = S.t + rand(150, 220); } },
+    { t:'{a}(이/가) 하던 일을 멈추고 창가로 갔다. {b}도 뒤따라왔다.', at:'window', say:[['a','첫눈이다.'],['b','…첫눈 오는 날엔 소원 빈다던데.'],['a','빌었어?'],['b','비밀이야.']] },
+    SNOW_MID,
+  ] },
+  f_anniv: { a:'any', manual:true, beats:[
+    { t:'오늘은 둘이 이 집에 처음 이삿짐을 풀었던 날이었다.' },
+    { t:'{a}(이/가) 신발장 옆에 붙은 이사 날짜 메모를 발견했다.', at:'door', say:[['a','…오늘이네.'],['b','뭐가?'],['a','이사 온 날.']] },
+    { v:{ hate:{ t:'{b}(이/가) 서랍에서 계약 갱신 서류를 꺼내 식탁에 올려놓았다. {a}(이/가) 먼저 펜을 집었다.', at:'table', say:[['b','한 해 더 참아 주지.'],['a','…그건 내 대사야.']], eff:{fun:6,feud:1} },
+          cold:{ t:'{a}(과/와) {b}(은/는) 그 얘기를 더 하지 않았다. 다만 그날 밤 현관 불이 평소보다 오래 켜져 있었다.', eff:{tension:2} },
+          peace:{ t:'{a}(과/와) {b}(은/는) 이사 온 첫날 먹었던 짜장면을 다시 시켰다.', at:'table', say:[['b','…그때도 이거였지.'],['a','응. 상자 위에서 먹었어.']], eff:{social:10}, rel:1 },
+          honey:{ t:'{b}(이/가) 서랍에서 이사 첫날 찍은 사진을 꺼냈다. 상자 더미 사이에서 둘 다 어색하게 웃고 있었다.', at:'sofa', say:[['a','…표정 봐.'],['b','지금도 별로 안 달라.']], eff:{tension:4}, emo:['heart','///'] } } },
+  ] },
+  f_blossom: { a:'any', manual:true, beats:[
+    { t:'오피스텔 앞 가로수 벚꽃이 한꺼번에 피었다. 창 아래 길이 분홍색으로 덮였다.' },
+    { t:'{a}(이/가) 창문을 열자 꽃잎 몇 장이 바람을 타고 방 안까지 들어왔다.', at:'window', say:[['a','…들어왔다.'],['b','창문 닫아. 청소는 누가 해.']] },
+    { v:{ hate:{ t:'{b}의 머리에 꽃잎이 붙었다. {a}(은/는) 알려 주지 않고 저녁 내내 혼자 웃었다.', say:[['b','…뭐가 웃겨.'],['a','아무것도.']], eff:{feud:1,fun:6}, emo:[null,'anger'] },
+          cold:{ t:'{a}(과/와) {b}(은/는) 같은 창 밖의 벚꽃을 따로따로 봤다. 사진은 각자 한 장씩 찍었다.', eff:{tension:2} },
+          peace:{ t:'{a}(이/가) 편의점에서 딸기우유 두 개를 사 왔다. 둘은 창가에 앉아 꽃구경을 했다.', at:'window', say:[['a','꽃놀이.'],['b','…창문 앞인데.'],['a','그래도 꽃은 꽃이야.']], eff:{fun:10}, rel:1 },
+          honey:{ t:'{a}(이/가) {b}의 머리에 붙은 꽃잎을 떼어 주었다. 떼고 나서도 손이 잠깐 머물렀다.', say:[['b','…뭐 붙었어?'],['a','응. 이제 없어.']], eff:{tension:5}, emo:['///','heart'] } } },
+  ] },
+  f_akeBday: { a:'ren', manual:true, beats:[
+    { t:'오늘은 {b}의 생일이었다. 정작 본인은 아무렇지 않은 얼굴이었다.' },
+    { t:'{a}(이/가) 냉장고 깊숙한 곳에서 숨겨 둔 케이크 상자를 꺼냈다.', at:'table', say:[['b','…언제 사 왔어?'],['a','어제.'],['b','냉장고 매일 여는데.'],['a','안 보이는 데 뒀어.']] },
+    { v:{ hate:{ t:'케이크에는 초가 정확히 스물두 개 꽂혀 있었다. {b}(은/는) 지기 싫다는 듯 한 번에 다 꺼 버렸다.', say:[['a','…폐활량.'],['b','이 정도는 기본이지.']], eff:{fun:8} },
+          cold:{ t:'{a}(은/는) 케이크만 식탁에 올려 두고 자리를 떴다. {b}(이/가) 혼자 초에 불을 붙일 즈음, {a}(이/가) 슬쩍 돌아와 맞은편에 앉았다.', say:[['b','……고마워.'],['a','…응.']], eff:{tension:3}, rel:1 },
+          peace:{ t:'{a}(이/가) 생일 축하 노래를 끝까지, 음정 하나 안 맞게 불렀다. {b}(은/는) 웃음을 참느라 초를 두 번에 나눠 껐다.', say:[['b','…노래는 빼도 됐어.'],['a','생일이니까.']], eff:{fun:12,social:8}, rel:1 },
+          honey:{ t:'{b}(이/가) 초를 끄기 전에 눈을 감았다. 무슨 소원을 빌었냐고 {a}(이/가) 묻자, {b}(은/는) 대답 대신 {a}의 볼에 짧게 입을 맞췄다.', say:[['a','…소원 뭐였어?'],['b','방금 이뤘어.']], eff:{tension:6}, emo:['///','heart'] } } },
+  ] },
+  f_fireworks: { a:'any', manual:true, beats:[
+    { t:'멀리서 펑 하는 소리가 났다. 강 쪽 하늘에 불꽃이 올랐다.' },
+    { t:'{a}(이/가) 불을 끄고 창가로 갔다. 12층 창으로 불꽃이 손바닥만 하게 보였다.', at:'window', say:[['a','여기서 보여.'],['b','…작네.'],['a','그래도 보여.']] },
+    { v:{ hate:{ t:'{a}(과/와) {b}(은/는) 누가 더 큰 불꽃을 먼저 찾나로 시비가 붙었다. 마지막 한 발은 둘 다 놓쳤다.', say:[['a','저거.'],['b','방금 그거 내가 먼저 봤어.']], eff:{feud:1,fun:8} },
+          cold:{ t:'{a}(과/와) {b}(은/는) 창 양 끝에 서서 마지막 불꽃까지 봤다. 불꽃이 터질 때마다 둘의 얼굴이 같은 색이 됐다.', eff:{tension:3} },
+          peace:{ t:'{a}(이/가) 불꽃이 터질 때마다 숫자를 셌다. 서른을 넘기자 {b}도 같이 셌다.', say:[['a','서른하나.'],['b','…서른둘.']], eff:{fun:10}, rel:1 },
+          honey:{ t:'불꽃이 하나 터질 때마다 {b}의 손이 조금씩 {a} 쪽으로 왔다. 마지막 불꽃이 터졌을 때는 이미 손을 잡고 있었다.', say:[['a','…끝났다.'],['b','응. 조금만 더 있다가 불 켜자.']], eff:{tension:5}, emo:['heart','///'] } } },
+  ] },
+  f_chuseok: { a:'any', manual:true, beats:[
+    { t:'추석이었다. 오피스텔 건물이 반쯤 빈 것처럼 조용했다. 둘은 연휴를 여기서 보내기로 했다.' },
+    { t:'{a}(이/가) 마트에서 사 온 송편 반죽을 식탁에 펼쳤다.', at:'table', say:[['a','빚자.'],['b','…사 먹는 게 빠르지 않아?'],['a','빚는 게 추석이야.']] },
+    { v:{ hate:{ t:'{b}의 송편은 반달이었고, {a}의 송편은 정체를 알 수 없었다. 누구 것이 더 예쁜지로 언쟁이 붙었다.', say:[['b','그건 송편이 아니라 만두야.'],['a','…맛은 같아.']], eff:{feud:1,fun:8} },
+          cold:{ t:'{a}(과/와) {b}(은/는) 반죽을 반씩 나눠 말없이 빚었다. 쪄 놓고 보니 누가 빚은 것인지 한눈에 갈렸다.', eff:{tension:2} },
+          peace:{ t:'송편을 예쁘게 빚으면 예쁜 사람을 만난다는 말에, {b}(이/가) 갑자기 아주 진지해졌다.', say:[['a','…누구 만나려고.'],['b','그냥 실력 문제야.']], eff:{fun:10,tension:2}, rel:1 },
+          honey:{ t:'{b}(이/가) {a}(이/가) 빚은 찌그러진 송편만 골라 먹었다. 자기가 빚은 예쁜 건 {a}의 접시에 놓았다.', say:[['a','그거 못생긴 거야.'],['b','알아. 그래서 내가 먹는 거야.']], eff:{tension:4}, emo:['///','heart'] } } },
+  ] },
+  f_xmas: { a:'any', manual:true, beats:[
+    { t:'크리스마스였다. 1층 카페 스피커의 캐럴이 엘리베이터를 타고 올라왔다.' },
+    { t:'{a}(이/가) 손바닥만 한 트리를 TV 옆에 세웠다. 전구는 세 칸 중 한 칸만 켜졌다.', at:'sofa', say:[['a','…트리.'],['b','작다.'],['a','방도 작아.']] },
+    { v:{ hate:{ t:'{a}(과/와) {b}(은/는) 선물을 교환했다. 열어 보니 둘 다 상대가 제일 싫어하는 물건이었다. 둘 다 묘하게 만족스러운 얼굴이었다.', say:[['b','…취향 정확히 알고 있네.'],['a','너도.']], eff:{feud:1,fun:10} },
+          cold:{ t:'{b}(이/가) 식탁에 작은 상자를 두고 갔다. 쪽지에는 「그냥.」이라고만 적혀 있었다. {a}(은/는) 상자를 한참 들여다봤다.', eff:{tension:3}, rel:1 },
+          peace:{ t:'{a}(과/와) {b}(은/는) 치킨을 시켜 놓고 TV 특선 영화를 봤다. 둘 다 이미 본 영화였지만 채널을 돌리지 않았다.', eff:{fun:10,social:8}, rel:1 },
+          honey:{ t:'{a}(이/가) 목도리를 꺼내 {b}의 목에 둘러 주었다. 포장지는 없었다. {b}(은/는) 목도리에 얼굴을 반쯤 묻고 한동안 말이 없었다.', say:[['b','…따뜻하다.'],['a','그럼 됐어.']], eff:{tension:5}, emo:['heart','///'] } } },
+  ] },
+  f_yearEnd: { a:'any', manual:true, beats:[
+    { t:'한 해의 마지막 밤이었다. TV에서 제야의 종 타종 중계가 시작됐다.' },
+    { t:'{a}(과/와) {b}(은/는) 소파에 앉아 카운트다운 숫자를 봤다.', at:'sofa', say:[['a','…열.'],['b','아홉.']] },
+    { v:{ hate:{ t:'0이 되는 순간 {a}(과/와) {b}(이/가) 동시에 말했다. "올해는 이긴다." 체스 얘기였다.', say:[['a','…체스.'],['b','물론이지.']], eff:{feud:1,fun:8} },
+          cold:{ t:'종이 울렸다. {a}(이/가) 새해 복 많이 받으라고 작게 말했다. {b}(은/는) 한 박자 늦게 같은 말을 돌려줬다.', eff:{tension:2}, rel:1 },
+          peace:{ t:'종이 울리자 {a}(과/와) {b}(은/는) 동시에 "올해도 잘 부탁해"라고 말했다. 둘 다 조금 웃었다.', eff:{social:10}, rel:1 },
+          honey:{ t:'종이 울리는 동안 {b}(이/가) {a}의 어깨에 머리를 기댔다. 새해 첫마디는 둘 다 하지 않았다. 할 필요가 없었다.', eff:{tension:4,rest:6}, emo:['heart','///'] } } },
+  ] },
+});
+const inSeason = k => season().k === k;
+const together = (a, b) => zoneOf(a) === zoneOf(b) && zoneOf(a) === 'main' && !a.brk && !b.brk;
+AMBIENT.push(
+  { when:()=>inSeason('spring'), text:['창밖에서 이삿짐 트럭이 후진하는 소리가 들렸다. 봄은 이사철이었다.','{a}(이/가) 창문을 열어 환기를 시켰다. 봄바람에 커튼이 한껏 부풀었다.','{a}(이/가) 재채기를 연달아 세 번 했다. 꽃가루 탓이라고 했다.'] },
+  { when:()=>inSeason('summer'), text:['에어컨 실외기가 창밖에서 웅웅 돌았다. {a}(은/는) 리모컨을 품에 안고 놓지 않았다.','{a}(이/가) 냉동실에서 마지막 남은 아이스크림을 꺼냈다. 주위를 한 번 둘러봤다.','해가 길어서 저녁이 되어도 창밖이 한참 밝았다.'] },
+  { when:(a,b)=>inSeason('summer') && together(a, b), text:['{a}(과/와) {b}(은/는) 선풍기 바로 앞자리를 두고 말없이 자리싸움을 했다.','{b}(이/가) 아이스크림을 반으로 쪼개 큰 쪽을 {a}에게 내밀었다.'] },
+  { when:()=>inSeason('autumn'), text:['{a}(이/가) 옷장에서 긴팔을 꺼냈다. 작년 냄새가 났다.','해가 짧아졌다. 창밖이 생각보다 일찍 어두워졌다.','{a}(이/가) 창가에 서서 높아진 하늘을 잠깐 올려다봤다.'] },
+  { when:()=>inSeason('winter'), text:['창문에 김이 서렸다. {a}(이/가) 손가락으로 작게 낙서를 하고 금방 지웠다.','식탁 위에 귤껍질이 쌓여 갔다. 누가 더 많이 먹었는지는 껍질이 말해 주었다.','{a}(이/가) 수면 양말을 신고 바닥을 미끄러지듯 걸어 다녔다.'] },
+  { when:(a,b)=>inSeason('winter') && together(a, b), text:['{a}(이/가) 차가운 손을 {b}의 볼에 갖다 댔다. {b}(이/가) 움찔했다.','{a}(이/가) 귤 하나를 까서 반을 {b}에게 건넸다. 흰 실까지 다 떼어 낸 반쪽이었다.'] },
+  { when:()=>S.weather === 'snow', text:['창밖으로 눈이 소리 없이 내렸다. 방 안이 유난히 조용했다.','{a}(이/가) 창가에 서서 눈송이 하나가 떨어지는 걸 끝까지 눈으로 좇았다.'] },
+);
 function pickBeat(beat, a){
   if (beat.v) { let q = quad(a); if (q === 'neutral') q = a.feud >= 40 ? 'hate' : 'peace'; return beat.v[q]; }
   if (beat.by) return choose(beat.by[a.id]);
@@ -1988,6 +2128,7 @@ function startScene(id){
   S.scene = { id, a, b: other(a), i:0, next:.3 };
 }
 function sceneTick(gm){
+  if (S.weather === 'snow' && S.rainEnd && S.t > S.rainEnd && !S.scene) { S.weather = null; S.rainEnd = null; logT('눈발이 잦아들었다. 창틀에 하얀 것이 조금 남았다.', P.ren, P.ake); }
   if (S.weather === 'rain' && S.rainEnd && S.t > S.rainEnd && !S.scene) { S.weather = null; S.rainEnd = null; logT('비가 그쳤다. 창밖이 조금씩 밝아졌다.', P.ren, P.ake); }
   if (!S.scene) {
     if (S.phase !== 'day' || !S.hapQ || !S.hapQ.length || S.t < S.hapQ[0].t) return;
@@ -2026,17 +2167,18 @@ function planHappenings(){
   if (ids.length < 2) S.hapSeen = [];
   const pick = [];
   const HW = teller().hap, want = Math.random() < teller().oneHap ? 1 : 2;
-  while (pick.length < want) { const k = chooseW(pool.filter(x => !pick.includes(x)), x => (HW[x] ?? 1)*seenW(x)); if (!pick.includes(k)) pick.push(k); }
+  while (pick.length < want) { const k = chooseW(pool.filter(x => !pick.includes(x)), x => (HW[x] ?? 1)*seenW(x)*(x === 'rain' ? season().rain : 1)); if (!pick.includes(k)) pick.push(k); }
   S.hapSeen.push(...pick);
   const times = [rand(16.6*60, 19.5*60), rand(19.8*60, 22.8*60)];
   if (pick.length === 1 && Math.random() < .5) times[0] = times[1];
   S.hapQ = pick.map((id, i) => ({ id, t: id === 'movie' ? Math.max(times[i], 20.2*60) : times[i] })).sort((x, y) => x.t - y.t);
-  if (pick.includes('rain') || Math.random() < .25*Math.min(1.6, HW.rain ?? 1)) {
+  if (pick.includes('rain') || Math.random() < .25*Math.min(1.6, HW.rain ?? 1)*season().rain) {
     const rt = pick.includes('rain') ? S.hapQ.find(h => h.id === 'rain').t : null;
     if (!rt) { S.hapQ.push({ id:'rain', t: rand(17*60, 21*60) }); }
     S.hapQ.push({ id:'thunder', t: (rt || 18*60) + rand(40, 120) });
     S.hapQ.sort((x, y) => x.t - y.t);
   }
+  seasonHaps();
   S.weather = null;
 }
 
@@ -3670,7 +3812,7 @@ function installHome(id, a, b){
 }
 function homeW(p, id){
   const n = p.needs, o = other(p), with_ = o.act === 'h_' + id, op = opinion(p), H = S.home[id];
-  if (id === 'kotatsu') return 3 + (S.cold && S.chill > .2 ? 28 : 0) + (hr() >= 21 ? 6 : 0) + (n.rest < 40 ? 6 : 0) + (with_ ? (op > -10 ? 16 : 3) : 0);
+  if (id === 'kotatsu') return season().kotatsu*3 + (S.cold && S.chill > .2 ? 28 : 0) + (hr() >= 21 ? 6 : 0) + (n.rest < 40 ? 6 : 0) + (with_ ? (op > -10 ? 16 : 3) : 0);
   if (id === 'puzzle') return 4 + (100 - n.fun)*.08 + (with_ ? 10 : 0) + (p.id === 'ake' ? 2 : 0) + (H.n >= 900 ? 6 : 0);
   if (id === 'cork') return 1.5;
   if (id === 'tank') return 2 + (totalMin() - H.fed > 240 ? 8 : 0) + ((H.murk || 0) > 1 && p.id === 'ake' ? 6 : 0);
@@ -4093,6 +4235,14 @@ const MILES = [
   { id:'honey',   title:'같은 마음',           test:()=>quad(P.ren) === 'honey' && quad(P.ake) === 'honey' },
   { id:'hate',    title:'최악의 동거인',       test:()=>quad(P.ren) === 'hate' && quad(P.ake) === 'hate' },
   { id:'week',    title:'일주일',              test:()=>S.day >= 7 },
+  { id:'blossom', title:'창밖의 벚꽃',         re:/가로수 벚꽃이 한꺼번에 피었다/ },
+  { id:'akeBday', title:'스물두 개의 초',      re:/의 생일이었다\. 정작 본인은/ },
+  { id:'fireworks',title:'손바닥만 한 불꽃',   re:/강 쪽 하늘에 불꽃이 올랐다/ },
+  { id:'chuseok', title:'찌그러진 송편',       re:/추석이었다\./ },
+  { id:'snow1',   title:'첫눈',                re:/올해 첫눈이었다/ },
+  { id:'xmas',    title:'한 칸만 켜진 트리',   re:/크리스마스였다\./ },
+  { id:'yearEnd', title:'제야의 종',           re:/한 해의 마지막 밤이었다/ },
+  { id:'anniv',   title:'이사 온 날',          re:/처음 이삿짐을 풀었던 날/ },
 ];
 function snapPhoto(){
   try {
@@ -4680,7 +4830,7 @@ function updateBedtime(dt){
 
 /* ---------- 하루의 첫 줄: 빛 + 오피스텔의 소리 + (있으면) 어제의 흔적 ---------- */
 function openingLine(prev){
-  const A = pickLine(['오피스텔 창으로 오후 햇빛이 들었다.', '12층 창밖으로 구름이 느리게 지나갔다.', '흐린 오후였다. 맞은편 건물들이 회색으로 가라앉아 있었다.',
+  const A = (seasonDay() === 1 && S.day > 1) || Math.random() < .55 ? pickLine(season().open) : pickLine(['오피스텔 창으로 오후 햇빛이 들었다.', '12층 창밖으로 구름이 느리게 지나갔다.', '흐린 오후였다. 맞은편 건물들이 회색으로 가라앉아 있었다.',
     '맞은편 건물 유리창에 해가 반사돼 방 안까지 번쩍였다.', '바람이 센 오후였다. 창틀이 가끔 덜컹거렸다.', '해가 기울기 시작한 오후, 거실 바닥에 창틀 그림자가 길게 늘어졌다.']);
   const B = Math.random() < .5 ? ' ' + pickLine(['복도 끝에서 엘리베이터 도착음이 들렸다.', '1층 카페의 원두 볶는 냄새가 엘리베이터를 타고 올라왔다.', '옆집에서 청소기 돌리는 소리가 벽 너머로 났다.',
     '현관문 틈에 누가 끼워 놓았는지 모를 전단지가 꽂혀 있었다.', '창밖 도로에서 버스가 브레이크를 밟는 소리가 올라왔다.', '복도 스피커로 관리실 방송이 흘러나왔다. 분리수거는 목요일이라고 했다.']) : '';
@@ -4692,7 +4842,8 @@ function openingLine(prev){
     [prev.run >= 3 && Math.random() < .5, ['식탁 위 체스 전적 메모가 유난히 눈에 띄었다.']],
     [prev.warm && Math.random() < .5, ['현관에 신발 두 켤레가 나란히 놓여 있었다.']],
   ]);
-  return fmt(A + B + (C ? ' ' + C : ''), 'ren', 'ake', prev.left ? prev.left.name : '');
+  const turn = seasonDay() === 1 && S.day > 1 ? season().turn + ' ' : '';
+  return fmt(turn + A + B + (C ? ' ' + C : ''), 'ren', 'ake', prev.left ? prev.left.name : '');
 }
 
 /* ============================================================
@@ -5397,9 +5548,10 @@ function draw(dt){
     const k = S.weather === 'rain' ? .86 : 1, [r, gg, b] = tc.map(v => (v/255*k).toFixed(3));
     const vals = `${r} 0 0 0 0 0 ${gg} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, m = $('pawnTintM');
     if (m && m.getAttribute('values') !== vals) m.setAttribute('values', vals); }
-  room.style.setProperty('--sky', `rgb(${sc.join(',')})`);
+  { const ss = season().sky, k = (1 - f)*.55; room.style.setProperty('--sky', `rgb(${sc.map((v, i) => Math.round(v + (ss[i] - v)*k)).join(',')})`); }
   $('lamp').style.opacity = clamp((f - .4)/.25, 0, 1) * (S.phase === 'night' ? 0 : 1);
-  room.classList.toggle('rain', S.weather === 'rain');
+  room.classList.toggle('rain', S.weather === 'rain'); room.classList.toggle('snow', S.weather === 'snow');
+  if (room.dataset.season !== season().k) room.dataset.season = season().k;
   const night = $('night'); night.style.opacity = S.phase === 'night' ? .86 : S.blackout ? .8 : S.powerOff ? .62 : S.phase === 'bedtime' ? .35 : 0;
   night.textContent = S.phase === 'night' ? '불이 꺼졌다' : S.blackout ? '정전' : '';
   pawns.forEach(p => {
@@ -5658,7 +5810,7 @@ function morningChains(){
   pawns.forEach(p => { p.chillExp = 0; p.chillWhy = ''; });
   /* 사라진 체스 말이 있으면 대청소가 오늘 일정에 끼어들 수 있다 */
   const lp = getTrace('lostPiece');
-  if (lp && S.day - lp.day >= 1 && S.hapQ && S.hapQ.length && !S.hapQ.some(h => h.id === 'cleaning') && Math.random() < .45) S.hapQ[S.hapQ.length-1].id = 'cleaning';
+  if (lp && S.day - lp.day >= 1 && S.hapQ && S.hapQ.length && !S.hapQ.some(h => h.id === 'cleaning') && !HAPPEN[S.hapQ[S.hapQ.length-1].id].manual && Math.random() < .45) S.hapQ[S.hapQ.length-1].id = 'cleaning';
 }
 
 /* --- 낮: 피곤함·감기의 잔효과와 결말 장면 --- */
@@ -6245,7 +6397,7 @@ function setTheater(on){
 }
 function renderTheater(force){
   if (!theater) return;
-  $('thDay').textContent = S.day + '일째';
+  $('thDay').textContent = dateLabel();
   $('thTime').textContent = S.phase === 'day' ? hhmm(S.t) : '24:00';
   const d = S.logs[S.logs.length-1], e = d && d.entries[d.entries.length-1], el = $('thLine');
   if (e && (force || el.dataset.k !== e.t + e.text)) { el.dataset.k = e.t + e.text; el.textContent = e.text; }
@@ -6299,7 +6451,7 @@ function renderTop(){
   renderGlance();
   renderTheater(false);
   renderTicker();
-  $('dayLabel').textContent = S.day + '일째';
+  $('dayLabel').textContent = dateLabel();
   $('timeLabel').textContent = S.phase === 'day' ? hhmm(S.t) : '24:00';
   $('playhead').style.left = clamp((S.t - DAY0)/(DAY1 - DAY0), 0, 1)*100 + '%';
   $('statusIdle').hidden = !$('hint').hidden;
@@ -6537,7 +6689,7 @@ document.querySelectorAll('[data-sw]').forEach(b => { const h = TOOL_HINT[b.data
 /* ============================================================
    10. 시작
    ============================================================ */
-load(); loadSprites(); if (S.chem == null) S.chem = Math.round(rand(-1, 1)*100)/100; spareInit(); applyTwin(!!S.twin); (S.furn || []).forEach(f => { f.busy = {}; }); rebuildBlocked(); drawHome(); cookInit(); renderTub(); S.plates = []; if (!S.mess) S.mess = []; setTimeout(renderMess, 0); pawns.forEach(p => { const nf = nearestFree(p.x, p.y); if (nf) { p.x = nf.x; p.y = nf.y; } }); if (S.pudding === undefined) S.pudding = { owner: choose(['ren','ake']), state:'ok' }; if (!S.hapQ) { planHappenings(); S.hapQ = S.hapQ.filter(h => h.t > S.t); } build(); resize(); drawMap();
+load(); festRequeue(); loadSprites(); if (S.chem == null) S.chem = Math.round(rand(-1, 1)*100)/100; spareInit(); applyTwin(!!S.twin); (S.furn || []).forEach(f => { f.busy = {}; }); rebuildBlocked(); drawHome(); cookInit(); renderTub(); S.plates = []; if (!S.mess) S.mess = []; setTimeout(renderMess, 0); pawns.forEach(p => { const nf = nearestFree(p.x, p.y); if (nf) { p.x = nf.x; p.y = nf.y; } }); if (S.pudding === undefined) S.pudding = { owner: choose(['ren','ake']), state:'ok' }; if (!S.hapQ) { planHappenings(); S.hapQ = S.hapQ.filter(h => h.t > S.t); } build(); resize(); drawMap();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawMap);
 pawns.forEach(p => setSprite(p, p.sprite));
 if (S.grabbed) $('hint').hidden = true;
