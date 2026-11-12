@@ -529,7 +529,6 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
 .teller[hidden]{display:none}
 .teller .paper{max-width:560px;width:100%;max-height:100%;overflow:auto;overscroll-behavior:contain;background:#f6f1e3;color:#2c2622;padding:16px 18px 14px;border:3px solid #2c2622;box-shadow:5px 5px 0 rgba(0,0,0,.4)}
 .teller h4{margin:0 0 4px;font-size:16px}
-.teller .au{margin:0 0 10px;padding:7px 9px;font-size:12px;line-height:18px;background:#2c2622;color:#f6f1e3}
 .teller .lead{margin:0 0 12px;font-size:12px;line-height:18px;color:#6d665c}
 .teller .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .teller .opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:10px 11px;background:#fffdf6;border:2px solid #2c2622;box-shadow:3px 3px 0 rgba(0,0,0,.25)}
@@ -696,7 +695,6 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
 <div class="teller" id="teller" role="dialog" aria-modal="true" aria-labelledby="tellerTitle" hidden>
   <div class="paper">
     <h4 id="tellerTitle">어떤 이야기를 보고 싶나요? <button class="hq" type="button" data-help="teller" aria-label="분위기 도움말">?</button></h4>
-    <p class="au" id="tellerAU" hidden>본 작품의 등장인물은 모두 명백한 성인이며, 학생이 아닙니다. 본 작품은 성인 AU 동거 시뮬레이션입니다.</p>
     <div class="opts" id="tellerOpts"></div>
     <div class="foot"><span id="tellerNow"></span><button class="btn" id="tellerClose" type="button">닫기</button></div>
   </div>
@@ -6355,7 +6353,6 @@ function renderTeller(){
     return `<button type="button" class="opt" data-teller="${k}" aria-pressed="${S.teller === k}"><span class="on"><i class="px px-${T.icon}" aria-hidden="true"></i>${esc(T.name)}</span><span class="od">${esc(T.desc)}</span></button>`; }).join('');
   $('tellerNow').textContent = S.teller ? '지금: ' + TELLERS[cur].name : '';
   $('tellerClose').hidden = !S.teller;
-  $('tellerAU').hidden = !!S.teller;
   $('moodBtn').innerHTML = S.teller ? `<i class="px px-${TELLERS[cur].icon}" aria-hidden="true"></i><span class="nm">${esc(TELLERS[cur].short)}</span>` : '<i class="px px-stars" aria-hidden="true"></i><span class="nm">분위기</span>';
   $('moodBtn').setAttribute('aria-label', '이야기 분위기: ' + (S.teller ? TELLERS[cur].name : '아직 안 고름') + ' (바꾸기)');
 }
