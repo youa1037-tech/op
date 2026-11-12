@@ -104,6 +104,14 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--sel);outline-
 .room.rain .sky-win{background:repeating-linear-gradient(110deg,#8fa0ad 0 3px,#6d7f8c 3px 6px)}
 .room.rain #tint{filter:brightness(.82) saturate(.7)}
 .room.snow .sky-win{background:radial-gradient(circle,#fff 0 1px,transparent 1.6px) 0 0/7px 7px,radial-gradient(circle,#fff 0 1px,transparent 1.6px) 3px 4px/9px 9px,var(--sky,#c6d0de);animation:snowfall 6s linear infinite}
+.stv{position:absolute;width:0;height:0;pointer-events:none}
+#stoveTop{z-index:2}
+.stv .fl{position:absolute;left:-6px;top:-1px;width:12px;height:3px;background:#5aa0e6;box-shadow:0 -2px 0 #9cd0ff}
+.stv.hot .fl{height:4px;background:#f08a2a;box-shadow:0 -3px 0 #ffd04a,-4px -5px 0 #f08a2a,4px -6px 0 #ffd04a}
+.stv .sm{position:absolute;left:-6px;top:-14px;width:12px;height:12px;background:#e4e0d8;opacity:calc(.25 + var(--s)*.75);box-shadow:6px -5px 0 #c9c3b8,0 0 0 2px rgba(60,55,50,.35);animation:puff 1.8s linear infinite}
+.stv .sm:nth-child(2){left:-1px;animation-delay:.6s}.stv .sm:nth-child(3){left:-9px;animation-delay:1.2s}
+@keyframes puff{from{transform:translateY(0) scale(.6)}to{transform:translateY(-38px) scale(1.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){.stv .sm{animation:none}}
 @keyframes snowfall{to{background-position:0 42px,3px 58px,0 0}}
 .room[data-season=spring]:not(.rain):not(.snow) .sky-win{background:radial-gradient(circle,#f6c9d4 0 1.4px,transparent 2px) 2px 3px/11px 9px,var(--sky,#bfd9e8)}
 .room[data-season=autumn]:not(.rain):not(.snow) .sky-win{background:radial-gradient(circle,#e3a64a 0 1.4px,transparent 2px) 5px 6px/13px 11px,var(--sky,#bfd9e8)}
@@ -660,7 +668,7 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
 <div class="teller help" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden><div class="paper">
   <h4 id="helpTitle">도움말</h4>
   <section id="help-tools"><h5>도구</h5><dl>
-    <dt>손</dt><dd>캐릭터를 끌어서 집고, 놓으면 던집니다. 빈방 가구도 끌어서 옮길 수 있습니다.</dd>
+    <dt>손</dt><dd>캐릭터를 끌어서 집고, 놓으면 던집니다. 빈방 가구도 끌어서 옮길 수 있습니다. 누가 요리하는 중이면 가스레인지를 눌러 불을 세게 올리고, 연기가 날 때 누르면 불을 줄입니다.</dd>
     <dt>찌르기</dt><dd>캐릭터를 눌러 찌릅니다.</dd>
     <dt>팬케이크 · 카레</dt><dd>바닥을 눌러 음식을 놓습니다. 팬케이크는 아케치, 카레는 렌이 더 좋아합니다.</dd>
     <dt>상자 · 분무기 · 먼지</dt><dd>캐릭터(먼지는 바닥)를 눌러 장난을 칩니다. 너무 자주 하면 둘이 눈치챕니다.</dd>
@@ -733,6 +741,8 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
       <div class="floor" id="home"></div>
       <div class="floor" id="mess"></div>
       <div class="floor" id="items"></div>
+      <div class="floor" id="stove"></div>
+      <div class="floor" id="stoveTop"></div>
       <div class="floor" id="doors"></div>
       <div class="floor" id="fghostL"><i id="fghost" hidden></i></div>
       <div class="fx" id="tint"></div>
@@ -2267,12 +2277,17 @@ const COOKED = {
 };
 function cookDone(p){
   S.cookedToday = (S.cookedToday || 0) + 1;
-  const o = other(p), d = makeDish(p);
+  const o = other(p), pan = panEnd(p);
+  if (pan && pan.co && pan.here) p.cookBonus = pan.coBonus;
+  const d = makeDish(p); p.cookBonus = 0;
+  if (d) panGrade(d, pan);
+  if (d && pan && pan.co && pan.here) S.cookSkill[o.id] = Math.min(10, (S.cookSkill[o.id] || 0) + .2);
   if (!d) {
     logT('{a}(이/가) 냉장고를 열었다. 텅 비어 있었다. 요리는 장보기부터 시작해야 했다.', p, o); say(p, p.id === 'ren' ? '…장 보러 가야겠다.' : '…아무것도 없잖아.');
     shopRun(p); return;
   }
-  logT(pickLine(COOKED[d.grade]), p, o, d.name);
+  logT(pickLine(pan && pan.co && pan.here && COCOOKED[d.grade] ? COCOOKED[d.grade] : COOKED[d.grade]), p, o, d.name);
+  if (pan && pan.note) logT(pan.note, p, o, d.name);
   S.cookLog.push({ day:S.day, t:hhmm(S.t), by:p.id, name:d.name, grade:d.grade, ok:d.ok }); if (S.cookLog.length > 12) S.cookLog.shift();
   skillUp(p, d);
   if (d.grade === 'burnt') {
@@ -2297,6 +2312,131 @@ function cookDone(p){
     if (o.mode === 'free' && !o.asleep) logT(pickLine(['{a}(은/는) 혼자 식탁에 앉아 {f}(을/를) 먹었다. {b}의 몫은 랩을 씌워 냉장고에 넣어 두었다.','{a}(은/는) {b}(을/를) 부르지 않고 혼자 {f}(을/를) 먹었다.']), p, o, d.name);
   }
   renderMess();
+}
+/* ============================================================
+   불 앞의 일: 같이 요리하기 · 태우기
+   - 요리가 시작되면 상대가 관계에 따라 거들러 온다 (손발이 맞거나, 참견하거나, 딴짓하거나).
+   - 한눈을 팔면 연기가 차오르고, 다 차면 탄다. 알아채면 살릴 수 있다.
+   - 플레이어는 손 도구로 가스레인지를 눌러 불을 키우거나(장난), 연기가 날 때 줄일 수 있다.
+   ============================================================ */
+const CO_JOIN = {
+  hate:{ t:'{b}(이/가) 주방에 들어와 팔짱을 끼고 {a}의 칼질을 지켜봤다. 감시인지 돕는 건지 알 수 없었다.', say:[['b','그렇게 썰면 안 익어.'],['a','…그럼 네가 해.'],['b','그럴 생각이야.']] },
+  cold:{ t:'{b}(이/가) 말없이 {a} 옆에 서서 채소를 씻기 시작했다. {a}(은/는) 아무것도 묻지 않았다.' },
+  peace:{ t:'{b}(이/가) 소매를 걷고 {a} 옆에 섰다.', say:[['b','뭐 하면 돼?'],['a','양파 좀.']] },
+  honey:{ t:'{b}(이/가) 주방에 와서 {a}의 앞치마 끈을 다시 묶어 주었다. 그러고는 그대로 옆에 남았다.', say:[['b','풀렸어.'],['a','…고마워.']] },
+};
+const CO_MID = {
+  hate:['간을 두고 {a}(과/와) {b}의 의견이 갈렸다. 소금 통이 두 사람 손 사이를 몇 번이나 오갔다.','{b}(이/가) 레시피와 다른 점을 하나하나 짚었다. {a}(은/는) 냄비 대신 {b}(을/를) 노려봤다.'],
+  cold:['{a}(과/와) {b}(은/는) 말 한마디 없이 분업했다. 이상하게 손발은 맞았다.'],
+  peace:['{b}(이/가) 재료를 건네는 타이밍이 정확했다. {a}(이/가) 손만 내밀면 필요한 게 놓였다.','{a}(이/가) 볶고 {b}(이/가) 설거지를 먼저 해치웠다. 다 만들었을 때 싱크대가 비어 있었다.'],
+  honey:['{b}(이/가) 간을 보라며 숟가락을 내밀었다. {a}(이/가) 받아먹는 동안 둘 다 냄비는 잊고 있었다.','좁은 주방에서 {a}(과/와) {b}의 팔꿈치가 자꾸 부딪쳤다. 누구도 자리를 넓히지 않았다.'],
+};
+const CO_TEACH = ['{a}(이/가) {b}에게 불 조절하는 법을 알려 주었다. {b}(은/는) 의외로 진지하게 들었다.','{a}(이/가) {b}의 손 위에 손을 얹고 칼 잡는 법을 고쳐 주었다. {b}(은/는) 한동안 칼질에만 집중하는 척했다.'];
+const COCOOKED = {
+  burnt:['{a}(과/와) {b}(은/는) 시커메진 {f}(을/를) 나란히 내려다봤다. 둘 다 상대 탓을 할 타이밍을 재고 있었다.','둘이 같이 만든 {f}(은/는) 둘이 같이 태웠다. 공평했다.'],
+  meh:['{a}(과/와) {b}(이/가) 같이 만든 {f}(이/가) 완성됐다. 모양은 반반씩 개성 있었다.'],
+  good:['{a}(과/와) {b}(이/가) 같이 만든 {f}(이/가) 완성됐다. 혼자 할 때보다 조금 더 빨랐다.','{b}(이/가) 접시를 꺼내고 {a}(이/가) {f}(을/를) 담았다. 손발이 맞았다.'],
+  master:['{a}(과/와) {b}(이/가) 같이 만든 {f}(은/는) 걸작이었다. 둘 다 자기 덕이라고 생각했다.'],
+};
+const PAN_DZ = {
+  ren:['{a}(이/가) 휴대폰 알림을 확인하느라 냄비에서 눈을 뗐다.','{a}(이/가) 창밖 소리에 잠깐 고개를 돌렸다. 불은 그대로였다.'],
+  ake:['{a}(이/가) 레시피 영상 댓글을 읽느라 냄비에서 눈을 뗐다.','{a}(이/가) 업무 메일에 답장하느라 한 손으로만 냄비를 저었다. 그러다 그마저 멈췄다.'],
+};
+const PAN_SAVE = ['{a}(이/가) "아차" 하며 불을 줄였다. 냄비 바닥이 아슬아슬하게 살아남았다.','{a}(이/가) 황급히 냄비를 불에서 내렸다. 겉만 살짝 그을렸다.'];
+const PAN_LATE = ['{a}(이/가) 냄비를 돌아봤을 때는 이미 늦었다. 연기가 천장까지 올라가 있었다.','{a}(이/가) 뚜껑을 열자 검은 연기가 훅 올라왔다.'];
+function panQ(x){ const q = quad(x); return q === 'neutral' ? (x.feud >= 40 ? 'hate' : 'peace') : q; }
+function sayAB(set, a, b){ if (!set) return; let t = 0; set.forEach(([w, x]) => { say(w === 'a' ? a : b, x, t); t += GAP; }); }
+function panStart(p){
+  if (S.pan || S.powerOff || S.phase !== 'day') return;
+  S.pan = { by:p.id, t:0, smoke:0, hot:false, dz:0, dzKind:'', co:null, coQ:'', coBonus:0, joinT: rand(.8, 3.5), mid:false, smell:false, sniff:false, saved:false, doom:false };
+  renderStove();
+}
+function panJoin(c, o, pan){
+  if (!kitchenFree(o) || !reachable(c, o) || ['bath','bed','meal','dish','chess'].includes(o.act) || p_busy(o)) return;
+  const q = panQ(o), ch = { honey:.6, peace:.45, hate:.28, cold:.15 }[q] + (o.needs.social < 40 ? .1 : 0) + (o.id === 'ake' && c.id === 'ren' ? .05 : 0);
+  if (Math.random() > ch) return;
+  clearPlan(o); pan.co = o.id; pan.coQ = q; pan.joinAt = pan.t;
+  pan.coBonus = { peace:1.4, honey:.8, cold:.6, hate:-.4 }[q] + Math.max(0, (S.cookSkill[o.id] || 0) - (S.cookSkill[c.id] || 0))*.3;
+  o.plan = [{ go:{ x:13.5, y:1.05 }, access:{ x:13, y:1 }, label:'주방으로 가는 중' }, { hold:true, max:999, act:'cookHelp', pose:'stand', label:'요리를 돕는 중' }];
+  logT(CO_JOIN[q].t, c, o); sayAB(CO_JOIN[q].say, c, o);
+  if (q === 'honey') emote(c, '///', 3); else if (q === 'hate') emote(c, 'anger', 2);
+}
+function p_busy(o){ return o.plan.some(s => s.act === 'scene' || s.act === 'cookHelp'); }
+function panDz(c, o, kind){
+  const pan = S.pan; if (!pan || pan.dz) return;
+  pan.dz = .01; pan.dzKind = kind;
+  if (kind === 'phone') logT(pickLine(PAN_DZ[c.id]), c, o);
+}
+function panNotice(c, o){
+  const pan = S.pan; if (!pan) return;
+  pan.dz = 0; pan.hot = false;
+  if (pan.smoke < .6) { pan.saved = true; logT(pickLine(PAN_SAVE), c, o); emote(c, 'sweat', 2); }
+  else { logT(pickLine(PAN_LATE), c, o); emote(c, 'sweat', 3); pan.smoke = 1; }
+}
+function panTick(gm){
+  const pan = S.pan; if (!pan) return;
+  const c = P[pan.by], o = other(c);
+  pan.t += gm;
+  if ((pan.t > .5 && c.act !== 'cook') || c.mode !== 'free' || S.powerOff) { panEnd(c); return; }
+  if (!pan.co && pan.joinT != null && pan.t >= pan.joinT) { pan.joinT = null; panJoin(c, o, pan); }
+  if (pan.co && !o.plan.some(s => s.act === 'cookHelp')) pan.co = null;
+  const helping = !!pan.co && o.act === 'cookHelp';
+  if (helping && !pan.mid && pan.t >= pan.joinAt + 3) {
+    pan.mid = true; const q = pan.coQ;
+    if (q !== 'hate' && S.cookSkill[c.id] - S.cookSkill[o.id] >= 2 && Math.random() < .45) {
+      logT(pickLine(CO_TEACH), c, o); S.cookSkill[o.id] = Math.min(10, S.cookSkill[o.id] + .4); emote(o, q === 'honey' ? '///' : 'note', 2);
+    } else {
+      logT(pickLine(CO_MID[q]), c, o);
+      if (q === 'honey') { emote(c, 'heart', 2); emote(o, '///', 2); if (Math.random() < .55) panDz(c, o, 'honey'); }
+      if (q === 'hate') { emote(c, 'anger', 2); if (Math.random() < .45) panDz(c, o, 'hate'); }
+    }
+  }
+  if (!pan.dz) { if (!helping && Math.random() < .012*gm) panDz(c, o, 'phone'); }
+  else { pan.dz += gm; if (pan.dz > 1 && Math.random() < (pan.dzKind === 'honey' ? .1 : .22)*gm) panNotice(c, o); }
+  if (pan.hot && !pan.dz && Math.random() < .05*gm) { pan.hot = false; say(c, c.id === 'ren' ? '…불이 왜 이렇게 세.' : '어? 불 세기 바꿨었나…'); }
+  const rate = (pan.hot ? .13 : 0) + (pan.dz ? .17 : 0);
+  pan.smoke = rate ? Math.min(1, pan.smoke + rate*gm) : Math.max(0, pan.smoke - .05*gm);
+  if (pan.smoke >= .35 && !pan.smell) { pan.smell = true; logT('주방 쪽에서 타는 냄새가 나기 시작했다.', c, o); }
+  if (pan.smoke >= .55 && !pan.sniff && !helping && o.mode === 'free' && !o.asleep && zoneOf(o) === zoneOf(c)) {
+    pan.sniff = true; say(o, o.id === 'ren' ? '…뭐 타는 냄새 안 나?' : '렌, 냄비!'); emote(o, 'sweat', 2); if (pan.dz || pan.hot) panNotice(c, o);
+  }
+  if (pan.smoke >= 1 && !pan.doom) { pan.doom = true; const i = c.plan.findIndex(s => s.act === 'cook'); if (i >= 0) { c.plan.splice(0, i + 1); cookDone(c); return; } }
+  renderStove();
+}
+function panEnd(c){
+  const pan = S.pan; S.pan = null;
+  if (pan && pan.co) { const h = P[pan.co]; pan.here = h.act === 'cookHelp'; if (h.plan.some(s => s.act === 'cookHelp')) clearPlan(h); }
+  renderStove(); return pan;
+}
+function panGrade(d, pan){
+  if (!pan || d.grade === 'weird') return;
+  if (pan.smoke >= 1) { d.grade = 'burnt'; return; }
+  if (pan.hot && !pan.saved && (d.grade === 'good' || d.grade === 'meh') && Math.random() < .35) { d.grade = d.grade === 'meh' ? 'good' : 'master'; pan.note = '센 불 덕분인지 불맛이 제대로 났다.'; return; }
+  if (pan.saved) { if (d.grade === 'master') d.grade = 'good'; if (pan.smoke > .25 && d.grade !== 'burnt') pan.note = '바닥이 살짝 눌어붙었지만, 그것도 맛이라고 우기기로 했다.'; }
+}
+function stoveHit(t){ return t.x >= 13.4 && t.x < 15.6 && t.y > -1.2 && t.y < 1.8; }
+function stoveTap(){
+  const pan = S.pan; if (!pan) return false;
+  const c = P[pan.by], o = other(c);
+  if (pan.smoke > .12 || pan.dz) {
+    pan.hot = false; pan.dz = 0; pan.saved = true; pan.smoke = Math.min(pan.smoke, .5);
+    logT('가스레인지 불이 저절로 줄어들었다. {a}(은/는) 고개를 갸웃했다.', c, o);
+    if (pan.co || (o.mode === 'free' && !o.asleep && zoneOf(o) === zoneOf(c) && Math.random() < .5)) {
+      logT('{a}(은/는) {b}(이/가) 불을 줄여 준 줄 알았다.', c, o); addRel(c, 1.5); say(c, '…고마워.'); if (!pan.co) say(o, '…응?', GAP);
+    }
+  } else if (!pan.hot) {
+    pan.hot = true; S.prankToday = (S.prankToday || 0) + 1;
+    logT('가스레인지 불꽃이 갑자기 확 커졌다. {a}(이/가) 움찔했다.', c, o); emote(c, 'sweat', 2);
+  } else pan.hot = false;
+  renderStove(); return true;
+}
+function renderStove(){
+  const el = $('stove'); if (!el) return;
+  const pan = S.pan, s = pan ? Math.round(pan.smoke*10)/10 : 0, k = pan ? (pan.hot ? 'h' : 'n') + s : '';
+  if (el.dataset.k === k) return; el.dataset.k = k;
+  const pos = `left:${14.5*T}px;top:${.5*T}px;--s:${s}`;
+  el.innerHTML = pan ? `<div class="stv${pan.hot ? ' hot' : ''}" style="${pos}"><i class="fl"></i></div>` : '';
+  const top = $('stoveTop'); if (top) top.innerHTML = pan && s > 0 ? `<div class="stv" style="${pos}"><i class="sm"></i><i class="sm"></i><i class="sm"></i></div>` : '';
 }
 function leftover(d, n){ if (d.grade === 'burnt' && Math.random() < .6) return; for (let i = 0; i < n; i++) S.left.push({ name:d.name, grade:d.grade, ok:d.ok, by:d.by, day:S.day }); while (S.left.length > 5) S.left.shift(); }
 /* 먹는 쪽(b)의 반응: 등급에 따라 */
@@ -2858,7 +2998,7 @@ function soloPlan(p, f, forced){
   const actOf = f === 'bed2' || f === 'bedB' ? 'bed' : f;
   const dur = f==='cook' ? rand(10,14) : f==='fridge' ? rand(1.5,3) : f==='dish' ? rand(5,8) : f==='table' ? rand(8,14) : f==='bed' || f==='bed2' || f==='bedB' ? rand(18,32) : f==='bath' ? rand(14,22) : f==='sink' ? rand(4,7) : f==='game' ? rand(14,24) : f==='sofa' ? rand(12,24) : f==='desk' ? rand(12,22) : rand(8,16);
   const DONE = { bed:() => wakeNap(p), cook:() => cookDone(p), fridge:() => fridgeDone(p), dish:() => dishDone(p) };
-  p.plan = [go, { call(){ soloFlavor(p, actOf); } }, { wait:dur, act:actOf, pose:spot.pose, label:L[1], done: DONE[actOf] || null }];
+  p.plan = [go, { call(){ soloFlavor(p, actOf); if (actOf === 'cook') panStart(p); } }, { wait:dur, act:actOf, pose:spot.pose, label:L[1], done: DONE[actOf] || null }];
 }
 function wander(p){
   clearPlan(p);
@@ -4940,6 +5080,7 @@ function tick(dt){
     spareTick(gm);
     homeTick(gm);
     livingTick(gm);
+    panTick(gm);
     bedOrderTick(gm); bedDeliverTick(gm); chainTick(gm); banTick(gm); giftTick(gm); fakeGiftTick(gm); diaryTick(gm);
     S.mileT = (S.mileT ?? 3) - gm; if (S.mileT <= 0) { S.mileT = 3; checkMiles(); }
     stepsTick(gm);
@@ -5410,6 +5551,7 @@ room.addEventListener('pointerdown', e => {
   if (e.target.closest('.pawn') || e.target.closest('.zoom') || e.target.closest('.diary') || e.target.closest('.thbar')) return;
   hidePeek();
   if (S.tool === 'hand' && !ptrs.size) { const t = toTile(e), f = furnAtTile(t);
+    if (S.pan && stoveHit(t)) { stoveTap(); return; }
     if (f && S.phase === 'day') { fdrag = { f, id:e.pointerId, ox:Math.floor(t.x) - f.x, oy:Math.floor(t.y) - f.y, tx:f.x, ty:f.y }; try { room.setPointerCapture(e.pointerId); } catch (err) {} showGhost(f, f.x, f.y, true); return; } }
   if (theater) { /* 전체화면에서는 도구가 안 보이므로 바닥을 눌러도 아무것도 놓지 않는다 */ }
   else if (S.tool === 'lock' && !ptrs.size) { toggleDoor(toTile(e)); return; }
@@ -6706,7 +6848,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.__sim = { renderMess, orderHome, installHome, useHome, homeMorning, drawHome, S, P, tick, quad, mood, statIcon, airState, renderGlance, toggleSwitch, sendSmall, openDiary, writeDiary, checkMiles, snapPhoto, unlock, MILES, giftFurn, placeFurn, unpackPlan, useFurn, validSpot, rebuildBlocked, drawMap, spareTick, cookDone, makeDish, delivery, shopRun, boxDuo, addMess, dropDust, toolAlarm, morningReview, chessTally, tryStash, dropFood, eatFood, sprayPawn, boxPawn, catchPawn, rollTogether, startScene, HAPPEN, lockDoor, giveNote, toggleDoor, grab, release, onShake, land, decide, opinion, mood, thoughts, startSulk, flipBoard, talk };
+window.__sim = { stoveTap, panStart, renderMess, orderHome, installHome, useHome, homeMorning, drawHome, S, P, tick, quad, mood, statIcon, airState, renderGlance, toggleSwitch, sendSmall, openDiary, writeDiary, checkMiles, snapPhoto, unlock, MILES, giftFurn, placeFurn, unpackPlan, useFurn, validSpot, rebuildBlocked, drawMap, spareTick, cookDone, makeDish, delivery, shopRun, boxDuo, addMess, dropDust, toolAlarm, morningReview, chessTally, tryStash, dropFood, eatFood, sprayPawn, boxPawn, catchPawn, rollTogether, startScene, HAPPEN, lockDoor, giveNote, toggleDoor, grab, release, onShake, land, decide, opinion, mood, thoughts, startSulk, flipBoard, talk };
 })();
 </script>
 </body>
