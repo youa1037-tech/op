@@ -532,7 +532,7 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
 .teller .au{margin:0 0 10px;padding:7px 9px;font-size:12px;line-height:18px;background:#2c2622;color:#f6f1e3}
 .teller .lead{margin:0 0 12px;font-size:12px;line-height:18px;color:#6d665c}
 .teller .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.teller .opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:10px 11px;background:#fffdf6;border:2px solid #2c2622;box-shadow:3px 3px 0 rgba(0,0,0,.25);min-height:118px}
+.teller .opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:10px 11px;background:#fffdf6;border:2px solid #2c2622;box-shadow:3px 3px 0 rgba(0,0,0,.25)}
 .teller .opt:hover{background:#fff6dc}
 .teller .opt:focus-visible{outline:3px solid #3b74d6;outline-offset:2px}
 .teller .opt[aria-pressed="true"]{background:#2c2622;color:#f6f1e3}
@@ -585,16 +585,55 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
 @keyframes fishswim{0%{transform:translateX(0)}100%{transform:translateX(14px) scaleX(-1)}}
 @media (prefers-reduced-motion:reduce){ .hm-tank s{animation:none} }
 .hm-box{background:#c9a46a;border:2px solid #2c2622;box-shadow:inset 0 0 0 3px #e2c48d}
+
+/* ============ 도움말 ============ */
+.hq{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-left:6px;vertical-align:1px;
+  font-size:10px;line-height:1;font-weight:700;color:var(--dim,#6d665c);border:1px solid currentColor;border-radius:50%;cursor:pointer;flex:none}
+.hq:hover{color:var(--text,#2c2622)}
+.hq:focus-visible{outline:2px solid #3b74d6;outline-offset:2px}
+.teller .hq{color:#6d665c}
+.help{z-index:210}
+.help .paper{max-width:520px}
+.help section{margin:0 0 12px}
+.help h5{margin:0 0 4px;font-size:13px}
+.help p,.help dd{margin:0;font-size:12px;line-height:19px;color:#4a443c}
+.help dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px}
+.help dt{font-size:12px;font-weight:700;white-space:nowrap}
+.help section.hl{background:#fff6dc;outline:2px solid #f2c94c;outline-offset:4px}
+@media (max-width:520px){ .help dl{grid-template-columns:1fr} .help dd{margin-bottom:4px} }
+.breakdown{margin-top:6px}
+.breakdown summary{cursor:pointer;font-size:11px;color:var(--dim);list-style:none}
+.breakdown summary::before{content:"▸ "}
+.breakdown[open] summary::before{content:"▾ "}
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="pawnTint" color-interpolation-filters="sRGB"><feColorMatrix id="pawnTintM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
+<div class="teller help" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden><div class="paper">
+  <h4 id="helpTitle">도움말</h4>
+  <section id="help-tools"><h5>도구</h5><dl>
+    <dt>손</dt><dd>캐릭터를 끌어서 집고, 놓으면 던집니다. 빈방 가구도 끌어서 옮길 수 있습니다.</dd>
+    <dt>찌르기</dt><dd>캐릭터를 눌러 찌릅니다.</dd>
+    <dt>팬케이크 · 카레</dt><dd>바닥을 눌러 음식을 놓습니다. 팬케이크는 아케치, 카레는 렌이 더 좋아합니다.</dd>
+    <dt>상자 · 분무기 · 먼지</dt><dd>캐릭터(먼지는 바닥)를 눌러 장난을 칩니다. 너무 자주 하면 둘이 눈치챕니다.</dd>
+    <dt>일기장</dt><dd>누구의 일기를 식탁 위에 펼쳐 둘지 고릅니다. 상대가 읽을 수도, 주인이 먼저 발견할 수도 있습니다.</dd>
+    <dt>문 잠금</dt><dd>욕실이나 작은 방 문을 눌러 잠그거나 엽니다. 둘이 같이 갇히면 쪽지를 넣을 수 있습니다.</dd>
+    <dt>두꺼비집 · 보일러</dt><dd>전기나 난방을 끕니다. 다시 누르면 켜지고, 그냥 두면 둘 중 하나가 고칩니다.</dd>
+  </dl></section>
+  <section id="help-gift"><h5>선물과 가구</h5><p>보내는 사람 이름을 고르면, 받은 쪽은 그 사람이 보낸 줄 압니다. 빈방 가구는 바로 도착해 빈방에 놓입니다. 거실 가구는 다음 날 택배로 와서 둘이 조립하고, 정해진 자리에 놓입니다.</p></section>
+  <section id="help-teller"><h5>분위기</h5><p>둘의 성격은 그대로이고, 어떤 일이 얼마나 자주 일어나는지만 달라집니다. 제목줄의 분위기 버튼으로 언제든 바꿀 수 있고, 다음 날 일정부터 반영됩니다.</p></section>
+  <section id="help-time"><h5>시간</h5><p>1배속에서 하루(16시~24시)는 약 24분입니다. 창을 닫거나 다른 탭에 가 있어도 최대 하루치까지 흘러가고, 돌아오면 그동안의 일을 요약해 보여 줍니다. 멈춤 상태로 두면 흐르지 않습니다. 둘이 잠들면 그날의 일기가 써집니다.</p></section>
+  <section id="help-needs"><h5>기분과 욕구</h5><p>휴식·재미·교류·혼자 있기가 낮아지면 기분이 떨어지고, 기분이 낮으면 삐치거나 날이 섭니다. 아래 목록은 지금 기분에 영향을 주는 일입니다.</p></section>
+  <section id="help-rel"><h5>관계</h5><p>우정은 상대를 얼마나 좋게 보는지, 앙숙은 쌓인 앙금, 텐션은 의식하는 정도입니다. 셋의 조합으로 관계 상태가 정해집니다. 관계는 날마다 조금씩 원래 궁합 쪽으로 돌아가고, 같은 분위기가 오래 이어지면 흔들리는 일이 생깁니다. 끝이나 결말은 없습니다.</p></section>
+  <section id="help-mem"><h5>기억</h5><p>방금 있었던 일은 몇십 분, 오래 남은 기억은 며칠 동안 행동과 대사에 영향을 줍니다. 항목에 마우스를 올리면 효과가 보입니다.</p></section>
+  <section id="help-save"><h5>저장</h5><p>진행 상황은 이 브라우저에 자동으로 저장됩니다. 처음부터 다시 시작하면 저장이 지워집니다. 본 작품의 등장인물은 모두 성인이며, 성인 AU 동거 시뮬레이션입니다.</p></section>
+  <div class="foot"><span></span><button class="btn" id="helpClose" type="button">닫기</button></div>
+</div></div>
 <div class="teller away" id="away" role="dialog" aria-modal="true" aria-labelledby="awayTitle" hidden><div class="paper" id="awayPaper"></div></div>
 <div class="teller" id="teller" role="dialog" aria-modal="true" aria-labelledby="tellerTitle" hidden>
   <div class="paper">
-    <h4 id="tellerTitle">어떤 이야기를 보고 싶나요?</h4>
+    <h4 id="tellerTitle">어떤 이야기를 보고 싶나요? <button class="hq" type="button" data-help="teller" aria-label="분위기 도움말">?</button></h4>
     <p class="au" id="tellerAU" hidden>본 작품의 등장인물은 모두 명백한 성인이며, 학생이 아닙니다. 본 작품은 성인 AU 동거 시뮬레이션입니다.</p>
-    <p class="lead">둘의 성격은 그대로이고, 어떤 일이 자주 일어나는지만 달라져요. 언제든 위의 「분위기」 버튼으로 바꿀 수 있어요.</p>
     <div class="opts" id="tellerOpts"></div>
     <div class="foot"><span id="tellerNow"></span><button class="btn" id="tellerClose" type="button">닫기</button></div>
   </div>
@@ -609,6 +648,7 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
     <div class="speed" role="group" aria-label="시간 속도">
       <button data-speed="0" aria-pressed="false">멈춤</button><button data-speed="1" aria-pressed="true">1배</button><button data-speed="3" aria-pressed="false">3배</button>
     </div>
+    <button class="btn t-btn" id="helpBtn" type="button" aria-label="도움말" title="도움말">?</button>
     <button class="btn t-btn t-mood" id="moodBtn" aria-haspopup="dialog" title="이야기 분위기 바꾸기">분위기</button>
     <button class="btn t-btn" id="foldBtn" aria-pressed="false" aria-label="정보 창 접기">_</button>
   </div>
@@ -650,7 +690,6 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
         <div class="tgroup"><span class="tcap">장난</span><button class="btn" data-tool="box" aria-pressed="false"><i class="px px-box" aria-hidden="true"></i>상자</button><button class="btn" data-tool="spray" aria-pressed="false"><i class="px px-spray" aria-hidden="true"></i>분무기</button><button class="btn" data-tool="dust" aria-pressed="false"><i class="px px-dust" aria-hidden="true"></i>먼지</button><button class="btn" data-tool="diary" aria-pressed="false"><i class="px px-book" aria-hidden="true"></i>일기장</button></div>
         <div class="tgroup"><span class="tcap">집</span><button class="btn" data-tool="lock" aria-pressed="false"><i class="px px-lock" aria-hidden="true"></i>문 잠금</button><button class="btn sw" data-sw="power" aria-pressed="false" title="눌러서 집 전기를 내리거나 올려요"><i class="px px-bolt" aria-hidden="true"></i>두꺼비집</button><button class="btn sw" data-sw="boiler" aria-pressed="false" title="눌러서 보일러를 끄거나 켜요"><i class="px px-snow" aria-hidden="true"></i>보일러 끄기</button></div>
       </div>
-      <p class="toolhint" id="toolHint"></p>
       <div class="notebar" id="furnbar" hidden></div>
       <div class="notebar" id="diarybar" hidden></div>
       <div class="notebar" id="notebar" hidden></div>
@@ -673,7 +712,6 @@ body.theater .peek:not([hidden]){display:block;position:absolute;z-index:42;left
 
   <div class="statusbar">
     <span class="grow"></span>
-    <span class="wide-only">꺼 둬도 최대 하루치는 흘러가요</span>
     <span id="hint" hidden></span><span id="statusIdle" hidden></span>
   </div>
  </div>
@@ -3596,9 +3634,9 @@ function renderFurnbar(){
   const from = ['none','ren','ake'].map(k => `<button class="btn" data-from="${k}" aria-pressed="${fr === k}">${k === 'none' ? '이름 없이' : esc(NAMES[k]) + ' 이름으로'}</button>`).join('');
   const sentToday = k => (S.smallSent || {})[k] === S.day;
   const small = Object.keys(SMALL).map(k => `<button class="btn" data-small="${k}" ${sentToday(k) ? 'disabled' : ''}>${px(SMALL[k].icon)}${SMALL[k].name}</button>`).join('');
-  el.innerHTML = `<div class="gb-row"><span class="nb-l">보내는 사람</span>${from}</div><div class="gb-row"><span class="nb-l">작은 선물</span>${small}</div>`
+  el.innerHTML = `<div class="gb-row"><span class="nb-l">보내는 사람${hq('gift')}</span>${from}</div><div class="gb-row"><span class="nb-l">작은 선물</span>${small}</div>`
     + `<div class="gb-row"><span class="nb-l">빈방 가구</span>${left.length ? left.map(k => `<button class="btn" data-furn="${k}">${FCAT[k].name}</button>`).join('') : '<span>보낼 수 있는 가구를 다 보냈어요.</span>'}</div>`
-    + `<div class="gb-row"><span class="nb-l">거실 가구 · 다음 날 도착</span>${Object.keys(HOME).map(k => { const st = S.home && S.home[k] ? '들여놓음' : homeOwned(k) ? '배송 중' : ''; return `<button class="btn" data-home="${k}" ${st ? 'disabled' : ''}>${HOME[k].name}${st ? ' (' + st + ')' : ''}</button>`; }).join('')}</div>`;
+    + `<div class="gb-row"><span class="nb-l">거실 가구</span>${Object.keys(HOME).map(k => { const st = S.home && S.home[k] ? '들여놓음' : homeOwned(k) ? '배송 중' : ''; return `<button class="btn" data-home="${k}" ${st ? 'disabled title="' + st + '"' : ''}>${HOME[k].name}${st === '들여놓음' ? ' ✓' : st ? ' · 배송 중' : ''}</button>`; }).join('')}</div>`;
 }
 /* 가구 손으로 옮기기 */
 let fdrag = null;
@@ -5036,7 +5074,7 @@ const TOOL_HINT = {
   lock:['문 잠금','욕실이나 작은 방 문을 눌러 잠그거나 열어요. 둘이 같이 갇히면 쪽지를 넣을 수 있어요.'],
 };
 function renderStatic(){
-  { const h = (S.swHint && TOOL_HINT[S.swHint]) || TOOL_HINT[S.tool] || TOOL_HINT.hand, el = $('toolHint'); if (el) el.innerHTML = `<b>${h[0]}</b> ${h[1]}`; S.swHint = null; }
+  S.swHint = null;
   document.querySelectorAll('[data-sw]').forEach(b => { const on = b.dataset.sw === 'power' ? !!S.powerOff : !!S.cold; b.setAttribute('aria-pressed', String(on));
     b.lastChild.textContent = b.dataset.sw === 'power' ? (on ? '전기 올리기' : '두꺼비집') : (on ? '보일러 켜기' : '보일러 끄기'); });
   { const d = $('albumDot'); if (d) { if (S.tab === 'album') S.albumSeen = (S.album || []).length; d.hidden = (S.album || []).length <= (S.albumSeen || 0); } }
@@ -5063,9 +5101,10 @@ function opinionBlock(p){
     + `<div class="gauge fd"><div class="gl"><span>앙숙</span><span class="num">${fd}</span></div><div class="gt"><i style="width:${fd}%"></i></div></div>`
     + `<div class="gauge ft"><div class="gl"><span>텐션</span><span class="num">${Math.round(p.tension)}</span></div><div class="gt"><i style="width:${Math.round(p.tension)}%"></i></div></div>`;
   const fb = favBias(p), favTxt = fb >= 3 ? fmt('관찰자는 {a} 쪽을 더 챙기고 있다', p.id) : fb <= -3 ? fmt('관찰자는 {a} 쪽을 더 챙기고 있다', o.id) : '관찰자는 둘을 비슷하게 대하고 있다';
-  return `<div class="block"><h3><span>${esc(fmt('{a}(이/가) 보는 {b}', p.id, o.id))}</span><span class="status">${relStatus(p)}</span></h3>${gauges}<p class="sub fav-l">${esc(favTxt)}</p><p class="sub">우정 내역</p><ul class="list">${rows.join('')}</ul></div>`;
+  return `<div class="block"><h3><span>${esc(fmt('{a}(이/가) 보는 {b}', p.id, o.id))}</span><span class="status">${relStatus(p)}</span></h3>${gauges}<details class="breakdown" ${relOpen ? 'open' : ''}><summary>우정 내역</summary><ul class="list">${rows.join('')}</ul></details></div>`;
 }
 const openDays = new Set();
+let relOpen = false;
 function renderDyn(force){
   const p = P[S.sel], dyn = $('dyn');
   $('whoName').textContent = S.tab === 'log' ? (S.logFilter === 'diary' ? '일기장' : '오늘 있었던 일') : S.tab === 'kitchen' ? '주방' : S.tab === 'album' ? '앨범' : NAMES[p.id];
@@ -5078,14 +5117,15 @@ function renderDyn(force){
     const needsHTML = `<div class="cols"><div>${bar('기분 ('+tier(m, MOOD_TIERS)+')', m, 'mood')}${Object.keys(NEED_LABEL).map(k => bar(NEED_LABEL[k], p.needs[k])).join('')}${(p.debt || 0) >= 1 ? bar('잠 부족', p.debt) : ''}</div>
       <div>${th.length ? `<ul class="list">${th.map(t => `<li><span>${esc(t.label)}</span>${signed(t.v)}</li>`).join('')}</ul>` : `<p class="empty">지금 기분에 영향을 주는 일이 없습니다.</p>`}</div></div>`;
 
-    const longs = p.ltm.length ? p.ltm.slice().reverse().map(m => `<div class="mem"><div class="t"><span>${esc(LONG[m.k].label)}${m.n>1?' ×'+m.n:''}</span><span class="num sub">${m.age === 0 ? '오늘 생김 · ' : ''}${m.days}일 남음</span></div><div class="e">${esc(LONG[m.k].effect)}</div></div>`).join('')
+    const longs = p.ltm.length ? p.ltm.slice().reverse().map(m => `<div class="mem" title="${esc(LONG[m.k].effect)}"><div class="t"><span>${esc(LONG[m.k].label)}${m.n>1?' ×'+m.n:''}</span><span class="num sub">${m.days}일 남음</span></div></div>`).join('')
       : `<p class="empty">며칠씩 남는 기억은 아직 없습니다.</p>`;
-    const shorts = p.mems.length ? p.mems.slice().reverse().map(m => `<div class="mem"><div class="t"><span>${esc(MEM[m.k].label)}${m.n>1?' ×'+m.n:''}</span><span class="num sub">${Math.ceil(m.left)}분 남음</span></div><div class="e">${esc(MEM[m.k].effect)}</div></div>`).join('')
-      : `<p class="empty">남아 있는 기억이 없습니다. 둘을 지켜보거나, 직접 집어서 사건을 만들어 보세요.</p>`;
+    const shorts = p.mems.length ? p.mems.slice().reverse().map(m => `<div class="mem" title="${esc(MEM[m.k].effect)}"><div class="t"><span>${esc(MEM[m.k].label)}${m.n>1?' ×'+m.n:''}</span><span class="num sub">${Math.ceil(m.left)}분 남음</span></div></div>`).join('')
+      : `<p class="empty">남아 있는 기억이 없습니다.</p>`;
     const chainL = traceLines(p);
     const memsHTML = (chainL.length ? `<div class="block"><h3><span>이어지는 일</span></h3><ul class="chain">${chainL.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '') + `<div class="block"><h3><span>오래 남은 기억</span></h3>${longs}</div><div class="block"><h3><span>방금 있었던 일</span></h3>${shorts}</div>`;
     const top = dyn.scrollTop;
-    dyn.innerHTML = `<section class="sect"><h3>기분과 욕구</h3>${needsHTML}</section><section class="sect"><h3>관계</h3>${opinionBlock(p)}</section><section class="sect"><h3>기억</h3>${memsHTML}</section>`;
+    dyn.innerHTML = `<section class="sect"><h3>기분과 욕구${hq('needs')}</h3>${needsHTML}</section><section class="sect"><h3>관계${hq('rel')}</h3>${opinionBlock(p)}</section><section class="sect"><h3>기억${hq('mem')}</h3>${memsHTML}</section>`;
+    { const d = dyn.querySelector('.breakdown'); if (d) d.addEventListener('toggle', () => { relOpen = d.open; }); }
     dyn.scrollTop = top;
   } else if (S.tab === 'kitchen') {
     cookInit();
@@ -5102,7 +5142,7 @@ function renderDyn(force){
     const fbar = `<div class="logfilter">${Object.keys(LOG_FILTERS).map(k => `<button class="btn" data-lf="${k}" aria-pressed="${(S.logFilter || 'all') === k}">${LOG_FILTERS[k]}</button>`).join('')}</div>`;
     if (S.logFilter === 'diary') {
       const D = (S.diary || []).slice().reverse();
-      dyn.innerHTML = fbar + (D.length ? D.map(x => `<div class="diary-inline">${diaryHTML(x)}</div>`).join('') : '<p class="empty">아직 쓴 일기가 없습니다. 둘이 잠들면 그날의 일기가 써집니다.</p>');
+      dyn.innerHTML = fbar + (D.length ? D.map(x => `<div class="diary-inline">${diaryHTML(x)}</div>`).join('') : '<p class="empty">아직 쓴 일기가 없습니다.</p>');
       dyn.querySelectorAll('[data-lf]').forEach(b => b.addEventListener('click', () => { S.logFilter = b.dataset.lf; renderDyn(true); }));
       return;
     }
@@ -5440,7 +5480,7 @@ function renderDiarybar(){
   el.hidden = S.tool !== 'diary'; if (el.hidden) return;
   if (S.openDiary) { el.innerHTML = `<div class="gb-row"><span>${esc(NAMES[S.openDiary.owner])}의 일기장이 식탁 위에 펼쳐져 있어요.</span></div>`; return; }
   const pages = ['ren','ake'].map(diaryPage);
-  if (!pages[0] && !pages[1]) { el.innerHTML = '<div class="gb-row"><span>아직 쓴 일기가 없어요. 첫날 밤이 지나야 해요.</span></div>'; return; }
+  if (!pages[0] && !pages[1]) { el.innerHTML = '<div class="gb-row"><span>아직 쓴 일기가 없어요.</span></div>'; return; }
   el.innerHTML = pages.filter(Boolean).map(pg => `<div class="gb-row"><button class="btn" data-diary="${pg.owner}">${px('book')}${esc(NAMES[pg.owner])}의 일기 펼쳐 두기</button></div><p class="db-q">펼쳐질 페이지 (${pg.day}일째): <q>${esc(pg.text)}</q></p>`).join('');
 }
 function openDiary(owner){
@@ -5900,11 +5940,11 @@ let tellerPrevSpeed = null;
 function renderTeller(){
   const cur = S.teller || 'mix';
   $('tellerOpts').innerHTML = ['calm','rival','slow','mix'].map(k => { const T = TELLERS[k];
-    return `<button type="button" class="opt" data-teller="${k}" aria-pressed="${S.teller === k}"><span class="on"><i class="px px-${T.icon}" aria-hidden="true"></i>${esc(T.name)}</span><span class="od">${esc(T.desc)}</span><span class="oe">${esc(T.eg)}</span></button>`; }).join('');
-  $('tellerNow').textContent = S.teller ? '지금: ' + TELLERS[cur].name : '처음 한 번만 고르면 돼요.';
+    return `<button type="button" class="opt" data-teller="${k}" aria-pressed="${S.teller === k}"><span class="on"><i class="px px-${T.icon}" aria-hidden="true"></i>${esc(T.name)}</span><span class="od">${esc(T.desc)}</span></button>`; }).join('');
+  $('tellerNow').textContent = S.teller ? '지금: ' + TELLERS[cur].name : '';
   $('tellerClose').hidden = !S.teller;
   $('tellerAU').hidden = !!S.teller;
-  $('moodBtn').innerHTML = S.teller ? `<i class="px px-${TELLERS[cur].icon}" aria-hidden="true"></i><span class="nm">${esc(TELLERS[cur].short)}</span>` : '<span class="nm">분위기</span>';
+  $('moodBtn').innerHTML = S.teller ? `<i class="px px-${TELLERS[cur].icon}" aria-hidden="true"></i><span class="nm">${esc(TELLERS[cur].short)}</span>` : '<i class="px px-stars" aria-hidden="true"></i><span class="nm">분위기</span>';
   $('moodBtn').setAttribute('aria-label', '이야기 분위기: ' + (S.teller ? TELLERS[cur].name : '아직 안 고름') + ' (바꾸기)');
 }
 function openTeller(){
@@ -5946,7 +5986,7 @@ function catchUp(sec){
   const st = { day:S.day, t:S.t, album:(S.album || []).length, diary:(S.diary || []).length, tally:{ ...(S.tally || { ren:0, ake:0 }) }, cook:(S.cookLog || []).length };
   catching = true; const spd = S.speed; S.speed = 1;
   const box = $('away'), paper = $('awayPaper');
-  paper.innerHTML = `<h4 id="awayTitle">자리를 비운 동안</h4><p class="lead">${fmtDur(sec)} 동안 있었던 일을 정리하고 있어요…</p><div class="bar"><i id="awayBar"></i></div>`;
+  paper.innerHTML = `<h4 id="awayTitle">자리를 비운 동안</h4><div class="bar"><i id="awayBar"></i></div>`;
   box.hidden = false;
   let left = run; const STEP = .1;
   (function chunk(){
@@ -5969,10 +6009,10 @@ function catchUp(sec){
     if (newAlbum.length) { const d = $('albumDot'); if (d && S.tab !== 'album') d.hidden = false; }
     const endT = S.t >= DAY1 ? '24:00' : hhmm(S.t), span = st.day === S.day ? S.day + '일째 ' + hhmm(st.t) + ' → ' + endT : st.day + '일째 ' + hhmm(st.t) + ' → ' + S.day + '일째 ' + endT;
     paper.innerHTML = `<h4 id="awayTitle">자리를 비운 ${fmtDur(sec)} 동안</h4>
-      <p class="span">${esc(span)}${capped ? ' · 하루치까지만 흘렀어요' : ''}</p>
+      <p class="span">${esc(span)}</p>
       ${pick.length ? `<ul>${pick.map(x => `<li><time>${x.e.day !== S.day ? x.e.day + '일 ' : ''}${x.e.t}</time><span>${esc(x.e.text)}</span></li>`).join('')}</ul>` : '<p class="lead">조용히 각자 할 일을 했어요.</p>'}
       ${chips.length ? `<div class="chips">${chips.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
-      <div class="foot"><span>${got.length}줄의 기록이 쌓였어요.</span><button class="btn" id="awayClose" type="button">확인</button></div>`;
+      <div class="foot"><span></span><button class="btn" id="awayClose" type="button">확인</button></div>`;
     $('awayClose').addEventListener('click', () => { box.hidden = true; });
     $('awayClose').focus();
     S.logDirty = true; renderStatic(); renderTop(); save();
@@ -5984,6 +6024,26 @@ document.addEventListener('visibilitychange', () => {
   else if (hiddenAt) { const sec = (Date.now() - hiddenAt)/1000; hiddenAt = null; catchUp(sec); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('away').hidden && !catching) $('away').hidden = true; });
+
+/* ---------- 도움말: 한곳에 모으고, 제목 옆 ? 아이콘으로 해당 섹션을 연다 ---------- */
+function hq(sec){ return `<button class="hq" type="button" data-help="${sec}" aria-label="도움말">?</button>`; }
+let helpPrevSpeed = null;
+function openHelp(sec){
+  const box = $('help'); box.hidden = false;
+  if (helpPrevSpeed == null) { helpPrevSpeed = S.speed; S.speed = 0; }
+  box.querySelectorAll('section').forEach(x => x.classList.remove('hl'));
+  const t = sec && $('help-' + sec);
+  if (t) { t.classList.add('hl'); t.scrollIntoView({ block:'start' }); } else box.querySelector('.paper').scrollTop = 0;
+  $('helpClose').focus();
+}
+function closeHelp(){ $('help').hidden = true; if (helpPrevSpeed != null) { S.speed = helpPrevSpeed; helpPrevSpeed = null; renderStatic(); } }
+document.addEventListener('click', e => { const b = e.target.closest('[data-help]'); if (!b) return; e.preventDefault(); e.stopPropagation(); openHelp(b.dataset.help); }, true);
+$('helpBtn').addEventListener('click', () => openHelp());
+$('helpClose').addEventListener('click', closeHelp);
+$('help').addEventListener('click', e => { if (e.target === $('help')) closeHelp(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('help').hidden) closeHelp(); });
+document.querySelectorAll('[data-tool]').forEach(b => { const h = TOOL_HINT[b.dataset.tool]; if (h) b.title = h[1]; });
+document.querySelectorAll('[data-sw]').forEach(b => { const h = TOOL_HINT[b.dataset.sw]; if (h) b.title = h[1]; });
 
 /* ============================================================
    10. 시작
